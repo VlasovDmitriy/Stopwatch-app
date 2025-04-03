@@ -8,35 +8,32 @@ type StopwatchProps = {
 export default function Stopwatch({ onRemove }: StopwatchProps) {
   const [isRunning, setIsRunning] = useState<boolean>(false);
   const [elapsedTime, setElapsedTime] = useState<number>(0);
-  const [buttonPosition, setButtonPosition] = useState({ x: "95%", y: "5%" }); 
+  const [buttonPosition, setButtonPosition] = useState({ x: "95%", y: "5%" });
+  const buttonRef = useRef<HTMLButtonElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
 
   const intervalIdRef = useRef<number | null>(null);
   const startTimeRef = useRef<number>(0);
 
-  
-  const handleMouseMove = (e: React.MouseEvent) => {
-    if (!containerRef.current || !onRemove) return;
-  
+  // Обработчик наведения на крестик
+  const handleMouseEnter = (e: React.MouseEvent) => {
+    if (!containerRef.current || !buttonRef.current || !onRemove) return;
+
     const containerRect = containerRef.current.getBoundingClientRect();
+    const buttonRect = buttonRef.current.getBoundingClientRect();
     const mouseX = e.clientX - containerRect.left;
     const mouseY = e.clientY - containerRect.top;
-  
-   
-    const buttonWidth = 40; 
-    const buttonHeight = 40;
-  
-    
-    const escapeDistance = 50; 
+
+    // Вычисляем новую позицию (убегаем от курсора)
+    const escapeDistance = 60;
     let newX = mouseX > containerRect.width / 2 
-      ? Math.max(10, mouseX - escapeDistance) 
-      : Math.min(containerRect.width - buttonWidth - 10, mouseX + escapeDistance); 
-  
+      ? Math.max(10, buttonRect.left - containerRect.left - escapeDistance)
+      : Math.min(containerRect.width - 40, buttonRect.left - containerRect.left + escapeDistance);
+
     let newY = mouseY > containerRect.height / 2 
-      ? Math.max(10, mouseY - escapeDistance) 
-      : Math.min(containerRect.height - buttonHeight - 10, mouseY + escapeDistance); 
-  
-    
+      ? Math.max(10, buttonRect.top - containerRect.top - escapeDistance)
+      : Math.min(containerRect.height - 40, buttonRect.top - containerRect.top + escapeDistance);
+
     setButtonPosition({ 
       x: `${newX}px`, 
       y: `${newY}px` 
@@ -87,21 +84,21 @@ export default function Stopwatch({ onRemove }: StopwatchProps) {
     <div 
       className="stopwatch" 
       ref={containerRef}
-      onMouseMove={handleMouseMove}
+      
       style={{ position: "relative" }} 
     >
       {onRemove && (
         <button
+        ref={buttonRef}
         onClick={onRemove}
         className="remove-button"
+        onMouseEnter={handleMouseEnter}
         style={{
           position: "absolute",
           left: buttonPosition.x,
           top: buttonPosition.y,
-          transition: "left 0.15s linear, top 0.15s linear", 
+          transition: "left 0.18s linear, top 0.18s linear",
           zIndex: 10,
-          width: "40px", 
-          height: "40px",
         }}
       >
         <IoClose />
